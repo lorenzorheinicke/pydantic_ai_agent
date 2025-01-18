@@ -33,4 +33,5 @@ ENV/
 .vscode/
 *.swp
 *.swo
-.DS_Store google_credentials.json
+.DS_Store
+google_credentials.json
