@@ -94,9 +94,10 @@ Do not mix tools unless specifically asked. Choose the most appropriate tool bas
             # First try to get video stats
             stats = None
             try:
-                video_info = get_video_info(url, fetch_stats=True, should_fetch_transcript=False)
-                if video_info.stats:
-                    stats = VideoStats(**video_info.stats)
+                with st.spinner("📊 Fetching video stats..."):
+                    video_info = get_video_info(url, fetch_stats=True, should_fetch_transcript=False)
+                    if video_info.stats:
+                        stats = VideoStats(**video_info.stats)
             except Exception as stats_error:
                 logfire.error("Failed to fetch video stats", 
                     error=str(stats_error),
@@ -107,7 +108,8 @@ Do not mix tools unless specifically asked. Choose the most appropriate tool bas
             # Then try to get transcript and analyze
             try:
                 logfire.info("Fetching video transcript", url=url)
-                video_info = get_video_info(url, should_fetch_transcript=True)
+                with st.spinner("📝 Fetching video transcript..."):
+                    video_info = get_video_info(url, should_fetch_transcript=True)
                 
                 # Save transcript to temp file for potential follow-up questions
                 temp_dir = Path(tempfile.gettempdir())
@@ -128,9 +130,10 @@ Format your response in markdown."""
                 )
                 
                 # Get analysis from the YouTube agent
-                result = youtube_agent.run_sync(
-                    f"Analyze this video and provide a comprehensive but concise summary:\n{formatted_info}"
-                )
+                with st.spinner("🧠 Analyzing video content..."):
+                    result = youtube_agent.run_sync(
+                        f"Analyze this video and provide a comprehensive but concise summary:\n{formatted_info}"
+                    )
                 
                 return result.data
                 
@@ -183,7 +186,8 @@ The transcript is currently unavailable ({str(transcript_error)}). You might wan
         """
         try:
             logfire.info("Starting transcript fetch", url=url)
-            video_info = get_video_info(url, fetch_stats=False, should_fetch_transcript=True)
+            with st.spinner("📝 Fetching video transcript..."):
+                video_info = get_video_info(url, fetch_stats=False, should_fetch_transcript=True)
             logfire.info("Successfully fetched transcript", 
                 url=url,
                 transcript_length=len(video_info.transcript),
@@ -210,7 +214,8 @@ The transcript is currently unavailable ({str(transcript_error)}). You might wan
         """
         try:
             logfire.info("Fetching video stats", url=url)
-            video_info = get_video_info(url, fetch_stats=True, should_fetch_transcript=False)
+            with st.spinner("📊 Fetching video stats..."):
+                video_info = get_video_info(url, fetch_stats=True, should_fetch_transcript=False)
             if not video_info.stats:
                 logfire.error("No stats available", url=url)
                 raise Exception("No statistics available for this video.")
@@ -284,9 +289,10 @@ if prompt := st.chat_input("What would you like to know?"):
         
         # Create and run the async streaming response
         async def get_streaming_response():
-            async with agent.run_stream(prompt, message_history=history) as result:
-                async for chunk in result.stream_text(delta=True):
-                    yield chunk
+            with st.spinner("🤔 Thinking..."):
+                async with agent.run_stream(prompt, message_history=history) as result:
+                    async for chunk in result.stream_text(delta=True):
+                        yield chunk
 
         # Process the stream
         async def process_stream():
