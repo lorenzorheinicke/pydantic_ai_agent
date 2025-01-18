@@ -10,12 +10,15 @@ A Python-based tool that leverages AI to analyze YouTube video content through t
 - Support for multiple languages
 - AI-powered analysis using Claude 3.5 Sonnet
 - Rich text output formatting
+- Web-based interface using Streamlit
+- Real-time chat interface for video analysis
 
 ## Prerequisites
 
 - Python 3.6+
 - Supadata.ai API key
 - OpenAI API key (for Claude integration)
+- Streamlit (for web interface)
 
 ## Installation
 
@@ -36,7 +39,7 @@ source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
 3. Install dependencies:
 
 ```bash
-pip install pydantic pydantic-ai python-dotenv requests rich
+pip install pydantic pydantic-ai python-dotenv requests rich streamlit
 ```
 
 4. Create a `.env` file in the project root and add your API keys:
@@ -48,29 +51,43 @@ OPENAI_API_KEY=your_openai_api_key
 
 ## Usage
 
-1. Run the YouTube researcher:
+You can use the tool in two ways:
+
+### 1. Web Interface (Recommended)
+
+Run the Streamlit web interface:
+
+```bash
+streamlit run streamlit_chat.py
+```
+
+Then open your browser and navigate to the displayed URL (typically http://localhost:8501)
+
+### 2. Command Line Interface
+
+Run the YouTube researcher in terminal mode:
 
 ```bash
 python youtube_researcher.py
 ```
 
-2. Enter a YouTube URL when prompted
-
-3. Ask questions about the video content
-
 ## Project Structure
 
 - `youtube_researcher.py`: Main application file
+- `streamlit_chat.py`: Streamlit web interface
 - `docs/`: API documentation
 - `.env`: Environment variables configuration
 - `requirements.txt`: Project dependencies
 
-## Environment Variables
-
-- `SUPADATA_API_KEY`: API key for Supadata.ai services
-- `OPENAI_API_KEY`: API key for OpenAI/Claude services
-
 ## Features in Detail
+
+### Web Interface
+
+- User-friendly Streamlit-based interface
+- Real-time chat interactions
+- Easy video URL input
+- Persistent chat history
+- Markdown-formatted responses
 
 ### Video Analysis
 
