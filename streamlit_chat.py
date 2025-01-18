@@ -23,7 +23,7 @@ st.title("AI Chat Assistant")
 @st.cache_resource
 def get_agent():
     agent = Agent(
-        'claude-3-5-sonnet-latest',
+        'openai:gpt-4o-mini',
         system_prompt='Be concise and format your response in markdown. Use markdown features like **bold**, *italics*, `code`, lists, and other formatting where appropriate.',
     )
     
@@ -59,25 +59,41 @@ if prompt := st.chat_input("What would you like to know?"):
     
     # Get agent response
     with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            # Convert message history to proper format
-            history = []
-            
-            # Add system prompt first
-            history.append(ModelRequest(parts=[
-                SystemPromptPart(content='Be concise and format your response in markdown. Use markdown features like **bold**, *italics*, `code`, lists, and other formatting where appropriate.')
-            ]))
-            
-            # Add conversation history
-            for msg in st.session_state.messages[:-1]:
-                if msg["role"] == "user":
-                    history.append(ModelRequest(parts=[UserPromptPart(content=msg["content"])]))
-                elif msg["role"] == "assistant":
-                    history.append(ModelResponse(parts=[TextPart(content=msg["content"])]))
-            
-            # Get response using message history
-            result = asyncio.run(agent.run(prompt, message_history=history))
-            st.markdown(result.data)
+        message_placeholder = st.empty()
+        full_response = ""
+        
+        # Convert message history to proper format
+        history = []
+        
+        # Add system prompt first
+        history.append(ModelRequest(parts=[
+            SystemPromptPart(content='Be concise and format your response in markdown. Use markdown features like **bold**, *italics*, `code`, lists, and other formatting where appropriate.')
+        ]))
+        
+        # Add conversation history
+        for msg in st.session_state.messages[:-1]:
+            if msg["role"] == "user":
+                history.append(ModelRequest(parts=[UserPromptPart(content=msg["content"])]))
+            elif msg["role"] == "assistant":
+                history.append(ModelResponse(parts=[TextPart(content=msg["content"])]))
+        
+        # Create and run the async streaming response
+        async def get_streaming_response():
+            async with agent.run_stream(prompt, message_history=history) as result:
+                async for chunk in result.stream_text(delta=True):
+                    yield chunk
+
+        # Process the stream
+        async def process_stream():
+            response_text = ""
+            async for chunk in get_streaming_response():
+                response_text += chunk
+                message_placeholder.markdown(response_text + "▌")
+            message_placeholder.markdown(response_text)
+            return response_text
+
+        # Run the async process
+        full_response = asyncio.run(process_stream())
     
     # Add assistant response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": result.data}) 
+    st.session_state.messages.append({"role": "assistant", "content": full_response}) 
