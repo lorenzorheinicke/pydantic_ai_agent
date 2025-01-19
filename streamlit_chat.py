@@ -18,6 +18,9 @@ from pydantic_ai.messages import (ModelRequest, ModelResponse,
 
 # Import authentication module
 from auth import check_auth, logout
+# Import neighborhood agent and dependencies
+from neighborhood_agent import (NeighborhoodDeps, NeighborhoodInfo,
+                                NoInformation, neighborhood_agent)
 # Import only the necessary functions from youtube_researcher
 from youtube_researcher import (VideoInfo, VideoStats, format_video_info,
                                 get_video_info, save_transcript_to_temp)
@@ -58,7 +61,7 @@ if user_info:
             'openai:gpt-4o-mini',
             system_prompt='''Be concise and format your response in markdown. Use markdown features like **bold**, *italics*, `code`, lists, and other formatting where appropriate.
 
-You have access to YouTube research capabilities through specific tools. Choose the appropriate tool based on what the user asks for:
+You have access to YouTube research capabilities and neighborhood information through specific tools. Choose the appropriate tool based on what the user asks for:
 
 1. Use analyze_youtube_video tool when the user asks for:
    - Video summaries or analysis
@@ -78,6 +81,12 @@ You have access to YouTube research capabilities through specific tools. Choose 
    - Publication date
    - Thumbnails
    - Any numerical statistics
+
+4. Use get_neighborhood_info tool when the user asks about:
+   - Local businesses and services
+   - Product recommendations from local stores
+   - Municipal services and information
+   - Community resources and facilities
 
 Do not mix tools unless specifically asked. Choose the most appropriate tool based on the user's request.''',
         )
@@ -265,6 +274,47 @@ The transcript is currently unavailable ({str(transcript_error)}). You might wan
                 )
                 raise Exception(f"Error getting video stats: {str(e)}")
         
+        @agent.tool
+        async def get_neighborhood_info(ctx: RunContext[None], query: str) -> str:
+            """Get information about local businesses, services, and community resources.
+            
+            Args:
+                query: The user's question about the neighborhood
+            
+            Returns:
+                Information about local businesses, services, or community resources
+            """
+            try:
+                # Initialize neighborhood dependencies
+                deps = NeighborhoodDeps.create()
+                
+                # Call neighborhood agent with the query
+                with st.spinner("🏘️ Searching neighborhood information..."):
+                    result = await neighborhood_agent.run(query, deps=deps)
+                
+                if isinstance(result.data, NeighborhoodInfo):
+                    # Format the response with sources and confidence scores
+                    response_parts = []
+                    response_parts.append("## Neighborhood Information\n")
+                    response_parts.append(result.data.answer)
+                    
+                    if result.data.sources:
+                        response_parts.append("\n\n**Sources:**")
+                        for source, score in zip(result.data.sources, result.data.confidence_scores):
+                            response_parts.append(f"- {source} (confidence: {score:.2f})")
+                    
+                    return "\n".join(response_parts)
+                else:
+                    # Handle NoInformation case
+                    return f"## No Information Available\n\n{result.data.message}"
+                    
+            except Exception as e:
+                logfire.error("Failed to get neighborhood information",
+                    error=str(e),
+                    error_type=type(e).__name__
+                )
+                return "I apologize, but I encountered an error while retrieving neighborhood information. Please try again or rephrase your question."
+
         return agent
 
     agent = get_agent()

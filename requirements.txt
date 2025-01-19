@@ -8,3 +8,5 @@ google-auth-httplib2>=0.2.0
 streamlit-google-auth>=0.1.0
 google-api-python-client>=2.0.0
 extra-streamlit-components==0.1.60
+pinecone-client>=3.0.0
+openai>=1.0.0
