@@ -12,13 +12,19 @@ A Python-based tool that leverages AI to analyze YouTube video content through t
 - Rich text output formatting
 - Web-based interface using Streamlit
 - Real-time chat interface for video analysis
+- Secure authentication system
+- Integration with Pinecone for vector storage
+- Neighborhood-based content analysis
 
 ## Prerequisites
 
-- Python 3.6+
+- Python 3.9+
+- Claude API access (via Anthropic)
+- YouTube Data API credentials
+- Pinecone API key
+- Streamlit (for web interface)
 - Supadata.ai API key
 - OpenAI API key (for Claude integration)
-- Streamlit (for web interface)
 
 ## Installation
 
@@ -39,21 +45,29 @@ source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
 3. Install dependencies:
 
 ```bash
-pip install pydantic pydantic-ai python-dotenv requests rich streamlit
+pip install -r requirements.txt
 ```
 
-4. Create a `.env` file in the project root and add your API keys:
+4. Set up your environment variables by copying `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your API keys and credentials:
 
 ```
 SUPADATA_API_KEY=your_supadata_api_key
 OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+PINECONE_API_KEY=your_pinecone_api_key
+YOUTUBE_API_KEY=your_youtube_api_key
+# Add other required credentials
 ```
 
 ## Usage
 
-You can use the tool in two ways:
-
-### 1. Web Interface (Recommended)
+### Web Interface (Recommended)
 
 Run the Streamlit web interface:
 
@@ -63,19 +77,15 @@ streamlit run streamlit_chat.py
 
 Then open your browser and navigate to the displayed URL (typically http://localhost:8501)
 
-### 2. Command Line Interface
-
-Run the YouTube researcher in terminal mode:
-
-```bash
-python youtube_researcher.py
-```
-
 ## Project Structure
 
-- `youtube_researcher.py`: Main application file
+- `youtube_researcher.py`: Main YouTube analysis logic
 - `streamlit_chat.py`: Streamlit web interface
-- `docs/`: API documentation
+- `pinecone_tool.py`: Pinecone vector database integration
+- `neighborhood_agent.py`: Neighborhood-based content analysis
+- `auth.py`: Authentication system
+- `config.py`: Configuration management
+- `docs/`: API and component documentation
 - `.env`: Environment variables configuration
 - `requirements.txt`: Project dependencies
 
@@ -100,6 +110,16 @@ python youtube_researcher.py
 - Context-aware responses
 - Access to full transcript when needed
 - Rich markdown formatting for responses
+
+## Documentation
+
+Detailed documentation for various components can be found in the `docs/` directory:
+
+- `docs/pinecone.md`: Pinecone integration guide
+- `docs/streamlit_authentication.md`: Authentication system documentation
+- `docs/youtube_data_api.md`: YouTube API setup guide
+- `docs/pydanticai_api.md`: PydanticAI integration
+- `docs/supadata_api.md`: Supadata API documentation
 
 ## License
 
