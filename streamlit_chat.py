@@ -57,6 +57,7 @@ if user_info:
     # Initialize the agent
     @st.cache_resource
     def get_agent():
+        """Get a configured instance of the AI Chat Agent."""
         agent = Agent(
             'openai:gpt-4o-mini',
             system_prompt='''Be concise and format your response in markdown. Use markdown features like **bold**, *italics*, `code`, lists, and other formatting where appropriate.
